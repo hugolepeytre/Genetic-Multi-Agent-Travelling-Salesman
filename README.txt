@@ -99,7 +99,4 @@ No specified graphic output ?
 
 
 Time worked on this :
-17h-20h30
-21h30-22h30
-9h45-11h15
-13h30-17h30
+10h30 : Beginning of debugging

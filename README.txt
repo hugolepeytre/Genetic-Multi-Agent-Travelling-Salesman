@@ -34,6 +34,8 @@ Population size
 Mutation probability
 Number of crossover points
 Elitism ? Size to choose
+Pool size during selection (Environement pressure ?)
+Number of generations
 __________
 Selection, mutation, cross-over, fitness functions
 End of computation
@@ -64,7 +66,8 @@ the rest of the genomes of the parents after each point, that way you get two ne
 each bit comes from either parent with equal probabilities. You also get 2 children.
 
 Mutation :
-Apply mutation algo to each new individual
+Apply mutation algo to each new individual. Here we give each object a probability of swapping with a uniformly
+chosen random one
 
 Choose a way to represent mutation/crossover that ensures only valid solutions are created ?
 https://en.wikipedia.org/wiki/Crossover_(genetic_algorithm) talks about this
@@ -100,3 +103,4 @@ No specified graphic output ?
 
 Time worked on this :
 10h30 : Beginning of debugging
+4h

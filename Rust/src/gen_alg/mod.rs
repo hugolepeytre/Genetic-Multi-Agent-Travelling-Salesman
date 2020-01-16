@@ -5,10 +5,10 @@ use rand::seq::SliceRandom;
 
 // Choose fitness or rank selection
 // Make sure POP_SIZE and ELITES have the same parity
-const POP_SIZE: i32 = 5000;
-const ELITES: i32 = 200;
-const GENERATIONS: i32 = 20;
-const POOL_SIZE: i32 = 500;
+const POP_SIZE: i32 = 10000;
+const ELITES: i32 = 1000;
+const GENERATIONS: i32 = 500;
+const POOL_SIZE: i32 = 1000;
 const NUM_MUTATIONS: f64 = 0.05;
 const POINTS_CROSSOVER: i32 = 1;
 
@@ -29,7 +29,7 @@ pub fn train(input: String) {
     // For each generation, do the stuff
     for i in 0..GENERATIONS {
         let mut new_generation: Vec<Genome> = Vec::new();
-        let gene_pool = rank_selection(pop, &mut new_generation);
+        let gene_pool = fitness_selection(pop, &mut new_generation);
         for _ in 0..(POP_SIZE - ELITES)/2 {
             let p1: usize = rng.gen_range(0, gene_pool.len());
             let p2: usize = rng.gen_range(0, gene_pool.len());
@@ -39,7 +39,7 @@ pub fn train(input: String) {
         }
         let mut best = 10000;
         let mut acc = 0;
-        let mut number = 0;
+        let mut number = 1;
         for gene in &new_generation {
             match gene.total_distance {
                 Some(d) => {
@@ -50,7 +50,7 @@ pub fn train(input: String) {
                 _ => (),
             }
         }
-        println!("Gen {}, pop : {}, gene pool : {}, avg : {}, best : {}", i, new_generation.len(), gene_pool.len(), 0, best);
+        println!("Gen {}, pop : {}, gene pool : {}, avg : {}, best : {}, num : {}", i, new_generation.len(), gene_pool.len(), acc/number, best, number - 1);
         pop = new_generation;
     }
 
@@ -201,8 +201,9 @@ struct Genome {
         let mut rng = thread_rng();
         let mut customer_list: Vec<i32> = (1..=n_customers).map(|n| n as i32).collect();
         customer_list.shuffle(&mut rng);
-        for _ in 1..total_vehicles {
-            customer_list.insert(rng.gen_range(0, customer_list.len()), 0);
+        let step = n_customers/total_vehicles;
+        for i in (1..total_vehicles).rev() {
+            customer_list.insert(step*i, 0);
         }
         Self::generate(customer_list, depots, customers)
     }
@@ -316,6 +317,7 @@ struct Genome {
                 }
             }
         }
+        println!("Load : {}", load);
         Some(total_distance)
     }
 

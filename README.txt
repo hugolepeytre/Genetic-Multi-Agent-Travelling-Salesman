@@ -91,16 +91,10 @@ Customers are assigned a single depot ?
 
 
 
-Questions : 
-Customers are assigned a single depot ?
-Computing distance between customers ?
-What's necessary service duration required for a customer ?
-"For customer data, lines go from 1 to n + t and the last t entries correspond to the t depots."
-Did you mean 1 + t to n + t ? (In Description for Data and Solution files)
-No specified graphic output ?
+Questions :
 
 
 
 Time worked on this :
 10h30 : Beginning of debugging
-4h
+6h

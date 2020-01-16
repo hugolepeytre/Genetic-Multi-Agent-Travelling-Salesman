@@ -5,11 +5,12 @@ use rand::seq::SliceRandom;
 
 // Choose fitness or rank selection
 // Make sure POP_SIZE and ELITES have the same parity
+// Best found for now (problem 1) : 10000, 1000, 10000, 1000, 0.015, 1
 const POP_SIZE: i32 = 10000;
 const ELITES: i32 = 1000;
-const GENERATIONS: i32 = 500;
+const GENERATIONS: i32 = 10000;
 const POOL_SIZE: i32 = 1000;
-const NUM_MUTATIONS: f64 = 0.05;
+const NUM_MUTATIONS: f64 = 0.015;
 const POINTS_CROSSOVER: i32 = 1;
 
 pub fn train(input: String) {
@@ -85,15 +86,9 @@ fn read_input(depots: &mut Vec<Depot>, customers: &mut Vec<Customer>, input: Str
 
 fn manage_outputs(best: Genome, depots: &Vec<Depot>, customers: &Vec<Customer>) {
     // TODO
-    for &person in &best.customer_order {
-        print!("{} ", person);
-    }
-    println!("");
-
-    Genome::tot_dist2(&best.customer_order, depots, customers);
-    match best.total_distance {
-        None => println!("Gros rip"),
-        Some(a) => println!("Smallest distance is {}", a),
+    match Genome::output_result(&best.customer_order, depots, customers) {
+        (_, None) => println!("Gros rip"),
+        (s, Some(d)) => {print!("{}\n{}", d, s)},
     }
 }
 
@@ -167,8 +162,12 @@ struct Customer {
 }
 
 impl Customer {
-    fn dist(&self, x: i32, y: i32) -> i32 {
+    fn manhattan_dist(&self, x: i32, y: i32) -> i32 {
         (x - self.x).abs() + (y - self.y).abs()
+    }
+
+    fn euclid_dist(&self, x: i32, y: i32) -> i32 {
+        (((x - self.x)*(x - self.x) + (y - self.y)*(y - self.y)) as f64).sqrt() as i32
     }
 }
 
@@ -181,8 +180,12 @@ struct Depot {
 }
 
 impl Depot {
-    fn dist(&self, x: i32, y: i32) -> i32 {
+    fn manhattan_dist(&self, x: i32, y: i32) -> i32 {
         (x - self.x).abs() + (y - self.y).abs()
+    }
+
+    fn euclid_dist(&self, x: i32, y: i32) -> i32 {
+        (((x - self.x)*(x - self.x) + (y - self.y)*(y - self.y)) as f64).sqrt() as i32
     }
 }
 
@@ -235,7 +238,7 @@ struct Genome {
                 if load > depots[depot].max_load {
                     return None
                 }
-                total_distance = total_distance + depots[depot].dist(x, y);
+                total_distance = total_distance + depots[depot].euclid_dist(x, y);
                 // Initialize new vehicle :
                 vehicle = vehicle + 1;
                 if vehicle >= depots[depot].vehicles {
@@ -252,7 +255,7 @@ struct Genome {
                     Some(cust) => {
                         load = load + cust.demand;
                         duration = duration + cust.duration;
-                        total_distance = total_distance + cust.dist(x, y);
+                        total_distance = total_distance + cust.euclid_dist(x, y);
                         x = cust.x;
                         y = cust.y;
                     }
@@ -267,11 +270,13 @@ struct Genome {
         if load > depots[depot].max_load {
             return None
         }
-        total_distance = total_distance + depots[depot].dist(x, y);
+        total_distance = total_distance + depots[depot].euclid_dist(x, y);
         Some(total_distance)
     }
 
-    fn tot_dist2(customer_order: &Vec<i32>, depots: &Vec<Depot>, customers: &Vec<Customer>) -> Option<i32> {
+    fn output_result(customer_order: &Vec<i32>, depots: &Vec<Depot>, customers: &Vec<Customer>) -> (String, Option<i32>) {
+        let mut result_string = String::new();
+        let mut cus_list = String::from("0 ");
         let mut total_distance = 0;
         
         let mut depot = 0;
@@ -283,18 +288,21 @@ struct Genome {
         let mut x = depots[0].x;
         let mut y = depots[0].y;
 
+        result_string.push_str(format!("{} {}", depot+1, vehicle+1).as_str());
+
         for &c in customer_order {
             if c == 0 {
                 // Check limits
                 if depots[depot].max_duration != 0 && duration > depots[depot].max_duration {
-                    return None
+                    return (String::from("Invalid duration"), None)
                 }
                 if load > depots[depot].max_load {
-                    return None
+                    return (String::from("Invalid load"), None)
                 }
-                total_distance = total_distance + depots[depot].dist(x, y);
+                total_distance = total_distance + depots[depot].euclid_dist(x, y);
+                cus_list.push_str("0");
+                result_string.push_str(format!("{}  {}  {}\n", duration, load, cus_list).as_str());
                 // Initialize new vehicle :
-                println!("Load : {}", load);
                 vehicle = vehicle + 1;
                 if vehicle >= depots[depot].vehicles {
                     vehicle = 0;
@@ -303,6 +311,8 @@ struct Genome {
                 x = depots[depot].x;
                 y = depots[depot].y;
                 load = 0;
+                cus_list = String::from("0 ");
+                result_string.push_str(format!("{} {}", depot+1, vehicle+1).as_str());
             }
             else {
                 match customers.get((c - 1) as usize) {
@@ -310,21 +320,31 @@ struct Genome {
                     Some(cust) => {
                         load = load + cust.demand;
                         duration = duration + cust.duration;
-                        total_distance = total_distance + cust.dist(x, y);
+                        total_distance = total_distance + cust.euclid_dist(x, y);
                         x = cust.x;
                         y = cust.y;
+                        cus_list.push_str(format!("{} ", c).as_str());
                     }
                 }
             }
         }
-        println!("Load : {}", load);
-        Some(total_distance)
+        // Check limits
+        if depots[depot].max_duration != 0 && duration > depots[depot].max_duration {
+            return (String::from("Invalid duration"), None)
+        }
+        if load > depots[depot].max_load {
+            return (String::from("Invalid load"), None)
+        }
+        cus_list.push_str("0");
+        result_string.push_str(format!("{}  {}  {}\n", duration, load, cus_list).as_str());
+        (result_string, Some(total_distance))
     }
 
     fn fitness(total_distance: Option<i32>) -> f64 {
         match total_distance {
             None => 0.0,
-            Some(d) => 1.0/d as f64,
+            Some(d) => 1.0/(1.0 + d as f64),
+            //Some(d) => {-1.0/(1.0/d as f64).ln()},
         }
     }
 

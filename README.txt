@@ -91,9 +91,8 @@ Customers are assigned a single depot ?
 
 
 
-Stuff to try :
-Actually check fitness of invalid solutions, and have it be non-zero but always less than valid
-Try to repair a created solution quickly if invalid
+Problems :
+Converges too quickly, doesn't explore enough possibilities ?
 
 
 

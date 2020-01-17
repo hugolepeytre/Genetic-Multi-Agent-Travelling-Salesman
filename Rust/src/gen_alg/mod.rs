@@ -2,17 +2,19 @@ use rand::prelude::*;
 use std::collections::HashSet;
 use std::cmp::Ordering;
 use rand::seq::SliceRandom;
-use std::i32::MAX;
+use std::i64::MAX;
+use std::fs::File;
+use std::io::prelude::*;
 
 // Choose fitness or rank selection
 // Make sure POP_SIZE and ELITES have the same parity
-// Best found for now (problem 1) : 10000, 1000, 10000, 1000, 0.015, 1
-const POP_SIZE: usize = 20000;
-const ELITES: i32 = 1000;
-const GENERATIONS: i32 = 1000;
-const POOL_SIZE: i32 = 1000;
-const NUM_MUTATIONS: f64 = 0.08;
-const CHILDREN: usize = 4;
+// Best found for now (problem 1) : 10000, 1000, 10000, 1000, 0.015, 4
+const POP_SIZE: usize = 1000;
+const ELITES: i64 = 100;
+const GENERATIONS: i64 = 1000;
+const POOL_SIZE: i64 = 100;
+const NUM_MUTATIONS: f64 = 0.015;
+const CHILDREN: usize = 1;
 
 pub fn train(input: String) {
     let mut rng = rand::thread_rng();
@@ -43,16 +45,25 @@ pub fn train(input: String) {
         new_generation.sort_by(|a, b| match a.fitness.partial_cmp(&b.fitness) {None => Ordering::Equal, Some(eq) => eq});
         new_generation.drain(0..(new_generation.len()-POP_SIZE));
         // To keep track of the progress
-        let (best, valid, total) = new_generation.iter().fold((MAX, 0, 0), |(mut b, v, t), gene| {
-            match gene.total_distance {
-                Some(d) => {
-                    if d < b {b = d;}
-                    (b, v+1, t+d)
-                    },
-                _ => (b, v, t),
+        let (best, valid, total_v, total_a) = new_generation.iter().fold((MAX, 0, 0, 0), |(mut b, v, t_v, t_a), gene| {
+            let d = gene.total_distance;
+            if gene.valid {
+                if d < 0 {
+                    manage_outputs(gene.clone(), &depots, &customers);
+                }
+                if d < b {b = d;}
+                return (b, v+1, t_v+d, t_a+d)
             }
+            if d < 0 {
+                manage_outputs(gene.clone(), &depots, &customers);
+            }
+            (b, v, t_v, t_a+d)
         });
-        println!("Gen {}, Pool : {}, Avg : {}, Best : {}, Valid : {}", i + 1, gene_pool.len(), total/valid, best, valid);
+        if total_a < 0 {
+            println!("wtf");
+        }
+        println!("Gen {}, Pool : {}, Valid Avg : {}, Avg : {}, Best : {}, Valid : {}", 
+                    i + 1, gene_pool.len(), total_v/valid, total_a/POP_SIZE as i64, best, valid);
 
         pop = new_generation;
     }
@@ -61,8 +72,8 @@ pub fn train(input: String) {
     manage_outputs(pop.pop().unwrap(), &depots, &customers);
 }
 
-fn read_input(depots: &mut Vec<Depot>, customers: &mut Vec<Customer>, input: String) -> i32 {
-    let data : Vec<Vec<i32>> = input.split('\n').map(|l| l.split_whitespace().map(|n| n.parse::<i32>().unwrap()).collect()).collect();
+fn read_input(depots: &mut Vec<Depot>, customers: &mut Vec<Customer>, input: String) -> i64 {
+    let data : Vec<Vec<i64>> = input.split('\n').map(|l| l.split_whitespace().map(|n| n.parse::<i64>().unwrap()).collect()).collect();
     let vehicles_per_depot = data[0][0];
     let n_customers = data[0][1];
     let n_depots = data[0][2];
@@ -88,11 +99,13 @@ fn read_input(depots: &mut Vec<Depot>, customers: &mut Vec<Customer>, input: Str
 }
 
 fn manage_outputs(best: Genome, depots: &Vec<Depot>, customers: &Vec<Customer>) {
-    // TODO : Graphic output
-    println!("Check : {}", best.total_distance.unwrap());
+    println!("Check : {}", best.total_distance);
     match Genome::output_result(&best.customer_order, depots, customers) {
         (_, None) => println!("Gros rip"),
-        (s, Some(d)) => {print!("{}\n{}", d, s)},
+        (s, Some(d)) => {
+            print!("{}\n{}", d, s);
+            write_to_file(format!("{}\n{}", d, s).as_str());
+        },
     }
 }
 
@@ -131,7 +144,7 @@ fn fitness_selection(old_pop: Vec<Genome>, new_gen: &mut Vec<Genome>) -> Vec<Gen
 fn _rank_selection(old_pop: Vec<Genome>, new_gen: &mut Vec<Genome>) -> Vec<Genome> {
     let mut rng = rand::thread_rng();
     let rank_total = POP_SIZE*(POP_SIZE-1)/2;
-    let mut selected: HashSet<i32> = HashSet::new();
+    let mut selected: HashSet<i64> = HashSet::new();
     let mut gene_pool: Vec<Genome> = Vec::new();
 
     let l = old_pop.len();
@@ -139,13 +152,13 @@ fn _rank_selection(old_pop: Vec<Genome>, new_gen: &mut Vec<Genome>) -> Vec<Genom
         new_gen.push((*old_pop.get(l - 1 - i as usize).unwrap()).clone());
     }
     for _ in 0..POOL_SIZE {
-        selected.insert(rng.gen_range(0, rank_total as i32));
+        selected.insert(rng.gen_range(0, rank_total as i64));
     }
     let mut acc = 0;
     for (i, elem) in old_pop.into_iter().enumerate() {
         let last_size = selected.len();
         acc = acc + i;
-        selected.retain(|&e| e > acc as i32);
+        selected.retain(|&e| e > acc as i64);
         if last_size - selected.len() > 0 {
             gene_pool.push(elem);
         }
@@ -157,7 +170,7 @@ impl Genome {
     // Just shuffles the customers and insert the right amount of zeros uniformly
     fn random(n_customers: usize, total_vehicles: usize, depots: &Vec<Depot>, customers: &Vec<Customer>) -> Genome {
         let mut rng = thread_rng();
-        let mut customer_list: Vec<i32> = (1..=n_customers).map(|n| n as i32).collect();
+        let mut customer_list: Vec<i64> = (1..=n_customers).map(|n| n as i64).collect();
         customer_list.shuffle(&mut rng);
         let step = n_customers/total_vehicles;
         for i in (1..total_vehicles).rev() {
@@ -166,15 +179,18 @@ impl Genome {
         Self::generate(customer_list, depots, customers)
     }
 
-    fn generate(customer_order: Vec<i32>, depots: &Vec<Depot>, customers: &Vec<Customer>) -> Genome {
-        // TODO : Create new customer order applying : count load/duration. If at any moment it's
-        // too much, swap current customer with the next zero. Then do the same but going down
-        let tot = Self::tot_dist(&customer_order, depots, customers);
+    fn generate(mut customer_order: Vec<i64>, depots: &Vec<Depot>, customers: &Vec<Customer>) -> Genome {
+        customer_order = Self::repair(customer_order, depots, customers);
+        customer_order.reverse();
+        customer_order = Self::repair(customer_order, depots, customers);
+        customer_order.reverse();
+        let (tot, valid) = Self::tot_dist(&customer_order, depots, customers);
         let fit = Self::fitness(tot);
-        Genome{customer_order, fitness: fit, total_distance: tot}
+        Genome{customer_order, fitness: fit, total_distance: tot, valid}
     }
 
-    fn tot_dist(customer_order: &Vec<i32>, depots: &Vec<Depot>, customers: &Vec<Customer>) -> Option<i32> {
+    fn tot_dist(customer_order: &Vec<i64>, depots: &Vec<Depot>, customers: &Vec<Customer>) -> (i64, bool) {
+        let mut valid = true;
         let mut total_distance = 0;
         
         let mut depot = 0;
@@ -190,10 +206,12 @@ impl Genome {
             if c == 0 {
                 // Check limits
                 if depots[depot].max_duration != 0 && duration > depots[depot].max_duration {
-                    return None
+                    total_distance = total_distance * depots.len() as i64;
+                    valid = false;
                 }
                 if load > depots[depot].max_load {
-                    return None
+                    total_distance = total_distance * depots.len() as i64;
+                    valid = false;
                 }
                 total_distance = total_distance + depots[depot].euclid_dist(x, y);
                 // Initialize new vehicle :
@@ -205,6 +223,7 @@ impl Genome {
                 x = depots[depot].x;
                 y = depots[depot].y;
                 load = 0;
+                duration = 0;
             }
             else {
                 match customers.get((c - 1) as usize) {
@@ -222,21 +241,19 @@ impl Genome {
 
         // Check limits
         if depots[depot].max_duration != 0 && duration > depots[depot].max_duration {
-            return None
+            total_distance = total_distance * depots.len() as i64;
+            valid = false;
         }
         if load > depots[depot].max_load {
-            return None
+            total_distance = total_distance * depots.len() as i64;
+            valid = false;
         }
         total_distance = total_distance + depots[depot].euclid_dist(x, y);
-        Some(total_distance)
+        (total_distance, valid)
     }
 
-    fn fitness(total_distance: Option<i32>) -> f64 {
-        match total_distance {
-            None => 0.0,
-            Some(d) => 1.0/d as f64,
-            //Some(d) => {-1.0/(1.0/d as f64).ln()},
-        }
+    fn fitness(total_distance: i64) -> f64 {
+        1.0/total_distance as f64
     }
 
     fn mutate(mut self, depots: &Vec<Depot>, customers: &Vec<Customer>) -> Genome {
@@ -297,7 +314,62 @@ impl Genome {
         (Self::generate(halfp1, depots, customers), Self::generate(halfp2, depots, customers))
     }
 
-    fn output_result(customer_order: &Vec<i32>, depots: &Vec<Depot>, customers: &Vec<Customer>) -> (String, Option<i32>) {
+    // TODO : Create new customer order applying : count load/duration. If at any moment it's
+    // too much, swap current customer with the next zero. Then do the same but going down
+    fn repair(mut customer_order: Vec<i64>, depots: &Vec<Depot>, customers: &Vec<Customer>) -> Vec<i64> {
+        let mut depot = 0;
+        let mut vehicle = 0;
+
+        let mut load = 0;
+        let mut duration = 0;
+
+        for i in 0..customer_order.len() {
+            if customer_order[i] == 0 {
+                // Initialize new vehicle :
+                vehicle = vehicle + 1;
+                if vehicle >= depots[depot].vehicles {
+                    vehicle = 0;
+                    depot = depot + 1;
+                }
+                load = 0;
+                duration = 0;
+            }
+            else {
+                match customers.get((customer_order[i] - 1) as usize) {
+                    None => panic!("Wrong customer number : {}", customer_order[i]),
+                    Some(cust) => {
+                        load = load + cust.demand;
+                        duration = duration + cust.duration;
+                    }
+                }
+            }
+            // Check limits
+            if depots[depot].max_duration != 0 && duration > depots[depot].max_duration {
+                customer_order = Self::swap_next_zero(i, customer_order);
+                load = 0;
+                duration = 0;
+            }
+            if load > depots[depot].max_load {
+                customer_order = Self::swap_next_zero(i, customer_order);
+                load = 0;
+                duration = 0;
+            }
+        }
+        customer_order
+    }
+
+    fn swap_next_zero(i: usize, mut customer_order: Vec<i64>) -> Vec<i64> {
+        match customer_order.iter().skip(i).position(|&e| e == 0) {
+            None => return customer_order,
+            Some(a) => {
+                customer_order[a + i] = customer_order[i];
+                customer_order[i] = 0;
+                return customer_order
+            }
+        }
+    }
+
+    fn output_result(customer_order: &Vec<i64>, depots: &Vec<Depot>, customers: &Vec<Customer>) -> (String, Option<i64>) {
         let mut result_string = String::new();
         let mut cus_list = String::from("0 ");
         let mut total_distance = 0;
@@ -334,6 +406,7 @@ impl Genome {
                 x = depots[depot].x;
                 y = depots[depot].y;
                 load = 0;
+                duration = 0;
                 cus_list = String::from("0 ");
                 result_string.push_str(format!("{:<3} {:<3} ", depot+1, vehicle+1).as_str());
             }
@@ -360,42 +433,49 @@ impl Genome {
         }
         total_distance = total_distance + depots[depot].euclid_dist(x, y);
         cus_list.push_str("0");
-        result_string.push_str(format!("{:<4} {:<4} {}\n", duration, load, cus_list).as_str());
+        result_string.push_str(format!("{:<4} {:<4} {}", duration, load, cus_list).as_str());
         (result_string, Some(total_distance))
     }
 }
 
 struct Customer {
-    x: i32,
-    y: i32,
-    duration: i32,
-    demand: i32,
+    x: i64,
+    y: i64,
+    duration: i64,
+    demand: i64,
 }
 
 impl Customer {
-    fn euclid_dist(&self, x: i32, y: i32) -> i32 {
-        (((x - self.x)*(x - self.x) + (y - self.y)*(y - self.y)) as f64).sqrt() as i32
+    fn euclid_dist(&self, x: i64, y: i64) -> i64 {
+        (((x - self.x)*(x - self.x) + (y - self.y)*(y - self.y)) as f64).sqrt() as i64
     }
 }
 
 struct Depot {
-    x: i32,
-    y: i32,
-    max_duration: i32,
-    max_load: i32,
-    vehicles: i32,
+    x: i64,
+    y: i64,
+    max_duration: i64,
+    max_load: i64,
+    vehicles: i64,
 }
 
 impl Depot {
-    fn euclid_dist(&self, x: i32, y: i32) -> i32 {
-        (((x - self.x)*(x - self.x) + (y - self.y)*(y - self.y)) as f64).sqrt() as i32
+    fn euclid_dist(&self, x: i64, y: i64) -> i64 {
+        (((x - self.x)*(x - self.x) + (y - self.y)*(y - self.y)) as f64).sqrt() as i64
     }
 }
 
 
 #[derive(Clone)]
 struct Genome {
-    customer_order: Vec<i32>,
+    customer_order: Vec<i64>,
     fitness: f64,
-    total_distance: Option<i32>,
+    total_distance: i64,
+    valid: bool,
+}
+
+pub fn write_to_file(text: &str) -> std::io::Result<()> {
+    let mut file = File::create("result.txt")?;
+    file.write_all(text.as_bytes())?;
+    Ok(())
 }

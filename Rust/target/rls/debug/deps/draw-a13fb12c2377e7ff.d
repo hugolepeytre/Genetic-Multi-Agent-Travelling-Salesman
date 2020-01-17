@@ -1,0 +1,12 @@
+c:\Users\Moi\Desktop\Desktop\EPFL\Bachelor\BA6\IT3708-Bio-Inspired-Artificial-Intelligence\GeneticAlgoProject\Rust\target\rls\debug\deps\draw-a13fb12c2377e7ff.rmeta: C:\Users\Moi\.cargo\registry\src\github.com-1ecc6299db9ec823\draw-0.3.0\src\lib.rs C:\Users\Moi\.cargo\registry\src\github.com-1ecc6299db9ec823\draw-0.3.0\src\canvas.rs C:\Users\Moi\.cargo\registry\src\github.com-1ecc6299db9ec823\draw-0.3.0\src\drawing.rs C:\Users\Moi\.cargo\registry\src\github.com-1ecc6299db9ec823\draw-0.3.0\src\render\mod.rs C:\Users\Moi\.cargo\registry\src\github.com-1ecc6299db9ec823\draw-0.3.0\src\render\bitmap.rs C:\Users\Moi\.cargo\registry\src\github.com-1ecc6299db9ec823\draw-0.3.0\src\render\svg.rs C:\Users\Moi\.cargo\registry\src\github.com-1ecc6299db9ec823\draw-0.3.0\src\shape.rs C:\Users\Moi\.cargo\registry\src\github.com-1ecc6299db9ec823\draw-0.3.0\src\style.rs
+
+c:\Users\Moi\Desktop\Desktop\EPFL\Bachelor\BA6\IT3708-Bio-Inspired-Artificial-Intelligence\GeneticAlgoProject\Rust\target\rls\debug\deps\draw-a13fb12c2377e7ff.d: C:\Users\Moi\.cargo\registry\src\github.com-1ecc6299db9ec823\draw-0.3.0\src\lib.rs C:\Users\Moi\.cargo\registry\src\github.com-1ecc6299db9ec823\draw-0.3.0\src\canvas.rs C:\Users\Moi\.cargo\registry\src\github.com-1ecc6299db9ec823\draw-0.3.0\src\drawing.rs C:\Users\Moi\.cargo\registry\src\github.com-1ecc6299db9ec823\draw-0.3.0\src\render\mod.rs C:\Users\Moi\.cargo\registry\src\github.com-1ecc6299db9ec823\draw-0.3.0\src\render\bitmap.rs C:\Users\Moi\.cargo\registry\src\github.com-1ecc6299db9ec823\draw-0.3.0\src\render\svg.rs C:\Users\Moi\.cargo\registry\src\github.com-1ecc6299db9ec823\draw-0.3.0\src\shape.rs C:\Users\Moi\.cargo\registry\src\github.com-1ecc6299db9ec823\draw-0.3.0\src\style.rs
+
+C:\Users\Moi\.cargo\registry\src\github.com-1ecc6299db9ec823\draw-0.3.0\src\lib.rs:
+C:\Users\Moi\.cargo\registry\src\github.com-1ecc6299db9ec823\draw-0.3.0\src\canvas.rs:
+C:\Users\Moi\.cargo\registry\src\github.com-1ecc6299db9ec823\draw-0.3.0\src\drawing.rs:
+C:\Users\Moi\.cargo\registry\src\github.com-1ecc6299db9ec823\draw-0.3.0\src\render\mod.rs:
+C:\Users\Moi\.cargo\registry\src\github.com-1ecc6299db9ec823\draw-0.3.0\src\render\bitmap.rs:
+C:\Users\Moi\.cargo\registry\src\github.com-1ecc6299db9ec823\draw-0.3.0\src\render\svg.rs:
+C:\Users\Moi\.cargo\registry\src\github.com-1ecc6299db9ec823\draw-0.3.0\src\shape.rs:
+C:\Users\Moi\.cargo\registry\src\github.com-1ecc6299db9ec823\draw-0.3.0\src\style.rs:

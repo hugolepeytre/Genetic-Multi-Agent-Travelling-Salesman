@@ -93,9 +93,11 @@ Customers are assigned a single depot ?
 
 Problems :
 Converges too quickly, doesn't explore enough possibilities ?
+What is duration ? And customer duration requirement ? 
 
 
 
-Time worked on this :
-10h30 : Beginning of debugging
-6h
+TODO :
+Add graphs of evolution
+Check computation of validity
+Make distance a float ?

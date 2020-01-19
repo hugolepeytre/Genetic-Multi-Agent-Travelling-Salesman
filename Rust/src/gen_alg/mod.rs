@@ -3,20 +3,18 @@ use std::collections::HashSet;
 use std::cmp::Ordering;
 use rand::seq::SliceRandom;
 use std::i64::MAX;
-use std::fs::File;
-use std::io::prelude::*;
 
 // Choose fitness or rank selection
 // Make sure POP_SIZE and ELITES have the same parity
-// Best found for now (problem 1) : 10000, 1000, 10000, 1000, 0.015, 4
-const POP_SIZE: usize = 1000;
-const ELITES: i64 = 100;
+// Best found for now (problem 1) : 10000, 1000, 10000, 1000, 0.015, 3 (or more for this one, but mor runtime)
+const POP_SIZE: usize = 10_000;
+const ELITES: i64 = 1_000;
 const GENERATIONS: i64 = 1000;
-const POOL_SIZE: i64 = 100;
+const POOL_SIZE: i64 = 1_000;
 const NUM_MUTATIONS: f64 = 0.015;
-const CHILDREN: usize = 1;
+const CHILDREN: usize = 4;
 
-pub fn train(input: String) {
+pub fn train(input: String) -> String{
     let mut rng = rand::thread_rng();
 
     let mut depots: Vec<Depot> = Vec::new();
@@ -37,7 +35,7 @@ pub fn train(input: String) {
         for _ in 0..CHILDREN*POP_SIZE/2 {
             let p1: usize = rng.gen_range(0, gene_pool.len());
             let p2: usize = rng.gen_range(0, gene_pool.len());
-            let (child1, child2) = gene_pool[p1].one_point_crossover(&gene_pool[p2], &depots, &customers, num_vehicles);
+            let (child1, child2) = gene_pool[p1].cut_crossfill_crossover(&gene_pool[p2], &depots, &customers, num_vehicles);
             new_generation.push(child1.mutate(&depots, &customers));
             new_generation.push(child2.mutate(&depots, &customers));
         }
@@ -69,7 +67,7 @@ pub fn train(input: String) {
     }
 
     // Then take the best individual, and display it
-    manage_outputs(pop.pop().unwrap(), &depots, &customers);
+    return manage_outputs(pop.pop().unwrap(), &depots, &customers);
 }
 
 fn read_input(depots: &mut Vec<Depot>, customers: &mut Vec<Customer>, input: String) -> i64 {
@@ -98,15 +96,17 @@ fn read_input(depots: &mut Vec<Depot>, customers: &mut Vec<Customer>, input: Str
     return vehicles_per_depot
 }
 
-fn manage_outputs(best: Genome, depots: &Vec<Depot>, customers: &Vec<Customer>) {
+fn manage_outputs(best: Genome, depots: &Vec<Depot>, customers: &Vec<Customer>) -> String {
     println!("Check : {}", best.total_distance);
+    let mut output = String::new();
     match Genome::output_result(&best.customer_order, depots, customers) {
         (_, None) => println!("Gros rip"),
         (s, Some(d)) => {
             print!("{}\n{}", d, s);
-            write_to_file(format!("{}\n{}", d, s).as_str());
+            output = format!("{}\n{}", d, s);
         },
     }
+    return output
 }
 
 // Returns a selection of the old population, and puts the best individuals in the new generation if elitism is on
@@ -271,7 +271,7 @@ impl Genome {
         Self::generate(self.customer_order, depots, customers)
     }
 
-    pub fn one_point_crossover(&self, parent2: &Genome, depots: &Vec<Depot>, customers: &Vec<Customer>, total_vehicles: usize) -> (Genome, Genome) {
+    pub fn cut_crossfill_crossover(&self, parent2: &Genome, depots: &Vec<Depot>, customers: &Vec<Customer>, total_vehicles: usize) -> (Genome, Genome) {
         let mut rng = thread_rng();
 
         let mut halfp1 = Vec::new();
@@ -472,10 +472,4 @@ struct Genome {
     fitness: f64,
     total_distance: i64,
     valid: bool,
-}
-
-pub fn write_to_file(text: &str) -> std::io::Result<()> {
-    let mut file = File::create("result.txt")?;
-    file.write_all(text.as_bytes())?;
-    Ok(())
 }

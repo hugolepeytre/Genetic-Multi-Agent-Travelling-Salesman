@@ -6,16 +6,18 @@ use std::i64::MAX;
 
 // Choose fitness or rank selection
 // Make sure POP_SIZE and ELITES have the same parity
-// Best found for now (problem 1) : 10000, 1000, 10000, 1000, 0.015, 3 (or more for this one, but mor runtime)
+// Best found for now (problem 1) : 10000, 1000, 10000, 1000, 0.015, 3 (or more for this one, but more runtime)
 const POP_SIZE: usize = 10_000;
 const ELITES: i64 = 1_000;
-const GENERATIONS: i64 = 1000;
+const GENERATIONS: i64 = 200;
 const POOL_SIZE: i64 = 1_000;
 const NUM_MUTATIONS: f64 = 0.015;
 const CHILDREN: usize = 4;
 
-pub fn train(input: String) -> String{
+pub fn train(input: String) -> (String, String) {
     let mut rng = rand::thread_rng();
+    let mut averages = String::new();
+    let mut bests = String::new();
 
     let mut depots: Vec<Depot> = Vec::new();
     let mut customers: Vec<Customer> = Vec::new();
@@ -62,12 +64,14 @@ pub fn train(input: String) -> String{
         }
         println!("Gen {}, Pool : {}, Valid Avg : {}, Avg : {}, Best : {}, Valid : {}", 
                     i + 1, gene_pool.len(), total_v/valid, total_a/POP_SIZE as i64, best, valid);
+        bests.push_str(format!("{} ", best).as_str());
+        averages.push_str(format!("{} ", total_v/valid).as_str());
 
         pop = new_generation;
     }
 
     // Then take the best individual, and display it
-    return manage_outputs(pop.pop().unwrap(), &depots, &customers);
+    return (manage_outputs(pop.pop().unwrap(), &depots, &customers), format!("{}\n{}", bests, averages));
 }
 
 fn read_input(depots: &mut Vec<Depot>, customers: &mut Vec<Customer>, input: String) -> i64 {

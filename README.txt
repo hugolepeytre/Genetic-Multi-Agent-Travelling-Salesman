@@ -92,12 +92,10 @@ Customers are assigned a single depot ?
 
 
 Problems :
+Bad without elitism
 Converges too quickly, doesn't explore enough possibilities ?
-What is duration ? And customer duration requirement ? 
+What is duration ? And customer duration requirement ?
 
 
 
-TODO :
-Add graphs of evolution
-Check computation of validity
-Make distance a float ?
+Do all 23 : 17h51 to 18h38m 200 gen, 4* children

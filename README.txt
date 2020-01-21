@@ -92,9 +92,18 @@ Customers are assigned a single depot ?
 
 
 Problems :
-Bad without elitism
 Converges too quickly, doesn't explore enough possibilities ?
 What is duration ? And customer duration requirement ?
+
+
+TODO : 
+Make the program stop at convergence
+Implement partially Mapped Crossover
+Slides 29 to 31 : Mutation
+Slides 34 to 41 : Crossover
+
+Add options for : fine-grained mutation (swap 2 adjacent), no repair, average-impact mutation : moving one thing in the genome
+Pareto domination tournament
 
 
 

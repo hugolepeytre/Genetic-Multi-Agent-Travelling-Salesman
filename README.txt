@@ -97,14 +97,32 @@ What is duration ? And customer duration requirement ?
 
 
 TODO : 
+Find a way to repair broken solutions that have wrong duration
 Make the program stop at convergence
-Implement partially Mapped Crossover
-Slides 29 to 31 : Mutation
-Slides 34 to 41 : Crossover
-
-Add options for : fine-grained mutation (swap 2 adjacent), no repair, average-impact mutation : moving one thing in the genome
-Pareto domination tournament
+For runtime : limit amount of rng created, make some stuff static instead of giving it as argument every time
 
 
 
-Do all 23 : 17h51 to 18h38m 200 gen, 4* children
+Test runs on 23 :
+Parameters : Tournament 50, 200, 500, mutation 0.2 to 0.6
+Then : Fractions of mutation
+Results :
+R, 0.2 		17513, 31m13s
+50T, 0.2	11478, 28m54s
+200T, 0.2 	11486, 30m37s
+500T, 0.2 	11058, 29m39s
+1000T, 0.2 	11739, 28m48s
+50T, 0.3
+200T, 0.3 
+500T, 0.3 	11735, 28m21s
+50T, 0.4
+200T, 0.4 
+500T, 0.4 	10619, 29m47s
+50T, 0.5
+200T, 0.5 
+500T, 0.5 	11141, 30m07s
+50T, 0.6
+200T, 0.6 
+500T, 0.6 	12030, 30m02s
+
+1 de chaque : 10340

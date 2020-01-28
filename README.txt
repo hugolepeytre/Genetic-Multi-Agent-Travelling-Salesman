@@ -97,9 +97,7 @@ What is duration ? And customer duration requirement ?
 
 
 TODO : 
-Find a way to repair broken solutions that have wrong duration : adjust fitness function to penalize invalid solutions, do just a bit of repair by first unbreaking load, and if duration is broken, swap with closest but don't pull zeroes
-Make the program stop at convergence
-For runtime : limit amount of rng created, precompute distances in big matrix
+What takes time is computing the crossovers, so we have to make those faster
 
 
 

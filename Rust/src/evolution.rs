@@ -7,12 +7,12 @@ use rand::prelude::*;
 use std::i64::MAX;
 
 const PROB_MUTATION: f64 = 0.4;
-const FRAC_INSERT: f64 = 7.0/10.0;
-const FRAC_SWAP: f64 = 1.0/10.0;
-const FRAC_SCRAMBLE: f64 = 2.0/10.0;
+const FRAC_INSERT: f64 = 0.7;
+const FRAC_SWAP: f64 = 0.1;
+const FRAC_SCRAMBLE: f64 = 0.2;
 
 const PROB_CROSSOVER: f64 = 0.9;
-const FRAC_ORDER1: f64 = 0.1;
+const FRAC_ORDER1: f64 = 0.0;
 const FRAC_PMX: f64 = 0.9;
 const FRAC_EDGE_RECOMB: f64 = 0.0;
 
@@ -55,16 +55,16 @@ pub fn crossover(parent1: &Genome, parent2: &Genome, depots: &Vec<Depot>, custom
     if cross < PROB_CROSSOVER {
         let cross: f64 = rng.gen();
         if cross < FRAC_ORDER1 {
-            child1 = order_1_crossover(parent1, parent2, total_vehicles);
-            child2 = order_1_crossover(parent2, parent1, total_vehicles);
+            child1 = order_1_crossover(parent1, parent2, total_vehicles, rng);
+            child2 = order_1_crossover(parent2, parent1, total_vehicles, rng);
         }
         else if cross < FRAC_ORDER1 + FRAC_PMX {
-            let children = partially_mapped_crossover(parent1, parent2, customers.len());
+            let children = partially_mapped_crossover(parent1, parent2, customers.len(), rng);
             child1 = children.0;
             child2 = children.1;
         }
         else if cross < FRAC_ORDER1 + FRAC_PMX + FRAC_EDGE_RECOMB {
-            let children = edge_recombination_crossover(parent1, parent2, customers.len());
+            let children = edge_recombination_crossover(parent1, parent2, customers.len(), rng);
             child1 = children.0;
             child2 = children.1;
         }
@@ -81,9 +81,7 @@ pub fn crossover(parent1: &Genome, parent2: &Genome, depots: &Vec<Depot>, custom
     (Genome::generate(child1, depots, customers), Genome::generate(child2, depots, customers))
 }   
 
-pub fn order_1_crossover(parent1: &Genome, parent2: &Genome, total_vehicles: usize) -> Vec<i64> {
-    let mut rng = thread_rng();
-
+pub fn order_1_crossover(parent1: &Genome, parent2: &Genome, total_vehicles: usize, rng: &mut ThreadRng) -> Vec<i64> {
     let mut child = Vec::new();
 
     let len = rng.gen_range(0, parent1.customer_order.len());
@@ -108,26 +106,30 @@ pub fn order_1_crossover(parent1: &Genome, parent2: &Genome, total_vehicles: usi
     child
 }
 
-pub fn partially_mapped_crossover(parent1: &Genome, parent2: &Genome, num_customers: usize) -> (Vec<i64>, Vec<i64>) {
+pub fn partially_mapped_crossover(parent1: &Genome, parent2: &Genome, num_customers: usize, rng: &mut ThreadRng) -> (Vec<i64>, Vec<i64>) {
     // Idea : Transform all zeroes into num_customers + 1 to num_customers + num_vehicles, do algo then turn them back to 0
-    let mut p1: Vec<i64> = parent1.customer_order.clone();
-    let mut p2: Vec<i64> = parent2.customer_order.clone();
+    let mut p1: Vec<i64> = Vec::new();
+    let mut p2: Vec<i64> = Vec::new();
     let mut transform = num_customers as i64;
-    for i in 0..p1.len() {
-        if p1[i] == 0 {
+    for &c in &parent1.customer_order {
+        if c == 0 {
             transform = transform + 1;
-            p1[i] = transform;
+            p1.push(transform);
+        }
+        else {
+            p1.push(c);
         }
     }
     transform = num_customers as i64;
-    for i in 0..p2.len() {
-        if p2[i] == 0 {
+    for &c in &parent2.customer_order {
+        if c == 0 {
             transform = transform + 1;
-            p2[i] = transform;
+            p2.push(transform);
+        }
+        else {
+            p2.push(c);
         }
     }
-
-    let mut rng = thread_rng();
 
     let l = p1.len();
     let len = rng.gen_range(0, l);
@@ -206,7 +208,7 @@ pub fn partially_mapped_crossover(parent1: &Genome, parent2: &Genome, num_custom
     (child1, child2)
 }
 
-pub fn edge_recombination_crossover(parent1: &Genome, parent2: &Genome, num_customers: usize) -> (Vec<i64>, Vec<i64>) {
+pub fn edge_recombination_crossover(parent1: &Genome, parent2: &Genome, num_customers: usize, rng: &mut ThreadRng) -> (Vec<i64>, Vec<i64>) {
     // Idea : Transform all zeroes into num_customers + 1 to num_customers + num_vehicles, do algo then turn them back to 0
     let mut p1: Vec<i64> = parent1.customer_order.clone();
     let mut p2: Vec<i64> = parent2.customer_order.clone();
@@ -226,8 +228,6 @@ pub fn edge_recombination_crossover(parent1: &Genome, parent2: &Genome, num_cust
     }
     let mut child1 = Vec::new();
     let mut child2 = Vec::new();
-
-    let mut rng = thread_rng();
 
     let mut neighbor_list1: Vec<BTreeSet<i64>> = vec![BTreeSet::new(); p1.len()];
     for (i, &n) in p1.iter().enumerate() {

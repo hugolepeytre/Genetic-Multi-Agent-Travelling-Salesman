@@ -9,7 +9,7 @@ use crate::world::{Depot, Customer};
 
 // General constants
 const POP_SIZE: usize = 10_000; // Make sure POP_SIZE and ELITES have the same parity
-const GENERATIONS: i64 = 1_000;
+const GENERATIONS: i64 = 2_000;
 const CHILDREN: usize = 4;
 
 pub fn train(input: String) -> (String, String) {
@@ -35,7 +35,7 @@ pub fn train(input: String) -> (String, String) {
         for _ in 0..CHILDREN*POP_SIZE/2 {
             let p1: usize = rng.gen_range(0, gene_pool.len());
             let p2: usize = rng.gen_range(0, gene_pool.len());
-            let (child1, child2) = crossover(&gene_pool[p1], &gene_pool[p2], &depots, &customers, num_vehicles, &mut rng);//gene_pool[p1].
+            let (child1, child2) = crossover(&gene_pool[p1], &gene_pool[p2], &depots, &customers, num_vehicles, &mut rng);
             new_generation.push(mutate(child1, &depots, &customers, &mut rng));
             new_generation.push(mutate(child2, &depots, &customers, &mut rng));
         }
@@ -44,16 +44,18 @@ pub fn train(input: String) -> (String, String) {
         new_generation.drain(0..(new_generation.len()-POP_SIZE));
 
         // To keep track of the progress
-        let (best, valid, total_v, total_a) = new_generation.iter().fold((MAX, 0, 0, 0), |(mut b, v, t_v, t_a), gene| {
+        let (best, valid, total_v, total_a, tot_penalty, best_penalty) = new_generation.iter().fold((MAX, 0, 0, 0, 0, MAX), |(mut b, v, t_v, t_a, t_p, mut b_p), gene| {
             let d = gene.total_distance();
-            if gene.valid() {
+            let p = gene.penalty();
+            if p == 0 {
                 if d < b {b = d;}
-                return (b, v+1, t_v+d, t_a+d)
+                return (b, v+1, t_v+d, t_a+d, t_p, b_p)
             }
-            (b, v, t_v, t_a+d)
+            if p < b_p {b_p = p;}
+            (b, v, t_v, t_a+d, t_p + p, b_p)
         });
-        println!("Gen {}, Pool : {}, Valid Avg : {}, Avg : {}, Best : {}, Valid : {}", 
-                    i + 1, gene_pool.len(), if valid == 0 {0} else {total_v/valid}, total_a/POP_SIZE as i64, best, valid);
+        println!("Gen {}, Pool : {}, Valid Avg : {}, Avg : {}, Best : {}, Valid : {}, Lowest penalty : {}, Avg Penalty : {}", 
+                i + 1, gene_pool.len(), if valid == 0 {0} else {total_v/valid}, total_a/POP_SIZE as i64, best, valid, best_penalty, if valid == POP_SIZE as i64 {0} else {tot_penalty/(POP_SIZE as i64 -valid)});
         bests.push_str(format!("{} ", best).as_str());
         averages.push_str(format!("{} ", if valid == 0 {0} else {total_v/valid}).as_str());
 
@@ -61,7 +63,17 @@ pub fn train(input: String) -> (String, String) {
     }
 
     // Then take the best individual, and display it
-    return (manage_outputs(pop.pop().unwrap(), &depots, &customers), format!("{}\n{}", bests, averages));
+    let first = pop.pop().unwrap();
+    let mut best = first.clone();
+    while best.penalty() != 0 && pop.len() > 0 {
+        best = pop.pop().unwrap();
+    }
+    if best.penalty() == 0 {
+        return (manage_outputs(best, &depots, &customers), format!("{}\n{}", bests, averages));
+    }
+    else {
+        return (manage_outputs(first, &depots, &customers), format!("{}\n{}", bests, averages));
+    }
 }
 
 fn manage_outputs(best: Genome, depots: &Vec<Depot>, customers: &Vec<Customer>) -> String {

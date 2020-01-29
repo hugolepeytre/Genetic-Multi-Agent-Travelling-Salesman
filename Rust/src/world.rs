@@ -10,11 +10,11 @@ impl Customer {
         (((x - self.x)*(x - self.x) + (y - self.y)*(y - self.y)) as f64).sqrt() as i64
     }
 
-    pub fn dist_cust(&self, cust: &Customer) -> i64 {
+    pub fn _dist_cust(&self, cust: &Customer) -> i64 {
         self.dist(cust.x, cust.y)
     }
 
-    pub fn dist_dep(&self, dep: &Depot) -> i64 {
+    pub fn _dist_dep(&self, dep: &Depot) -> i64 {
         self.dist(dep.x, dep.y)
     }
 
@@ -60,15 +60,15 @@ impl Depot {
         load > self.max_load
     }
 
-    pub fn over_limits(&self, load: i64, dur: i64) -> bool {
+    pub fn _over_limits(&self, load: i64, dur: i64) -> bool {
         self.over_duration(dur) || self.over_load(load)
     }
 
-    pub fn dist_dep(&self, dep: &Depot) -> i64 {
+    pub fn _dist_dep(&self, dep: &Depot) -> i64 {
         self.dist(dep.x, dep.y)
     }
 
-    pub fn dist_cust(&self, cust: &Customer) -> i64 {
+    pub fn _dist_cust(&self, cust: &Customer) -> i64 {
         self.dist(cust.x, cust.y)
     }
 

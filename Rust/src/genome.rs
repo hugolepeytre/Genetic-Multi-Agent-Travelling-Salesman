@@ -250,7 +250,7 @@ impl Genome {
         }
     }
 
-    fn swap_elems(mut customer_order: Vec<i64>, idx1: usize, idx2: usize) -> Vec<i64> {
+    fn _swap_elems(mut customer_order: Vec<i64>, idx1: usize, idx2: usize) -> Vec<i64> {
         let tmp = customer_order[idx1];
         customer_order[idx1] = customer_order[idx2];
         customer_order[idx2] = tmp;

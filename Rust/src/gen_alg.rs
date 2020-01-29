@@ -1,6 +1,7 @@
 use rand::prelude::*;
 use std::cmp::Ordering;
 use std::i64::MAX;
+use rayon::prelude::*;
 
 use crate::genome::Genome;
 use crate::selection::tournament_selection;

@@ -7,7 +7,7 @@ const POOL_SIZE: i64 = 1000;
 const TOURNAMENT_SIZE: usize = 500; // 1 is random, higher up to pop.len() is higher pressure
 const SELECTION_PRESSURE: f64 = 0.9; // Higher = closer to deterministic, should be between 0 and 1
 
-pub fn fitness_selection(old_pop: Vec<Genome>, new_gen: &mut Vec<Genome>) -> Vec<Genome> {
+pub fn _fitness_selection(old_pop: Vec<Genome>, new_gen: &mut Vec<Genome>) -> Vec<Genome> {
     let mut rng = thread_rng();
     let mut pool: Vec<Genome> = Vec::new();
     let mut fitness_cdf: Vec<f64> = Vec::new();
@@ -30,7 +30,7 @@ pub fn fitness_selection(old_pop: Vec<Genome>, new_gen: &mut Vec<Genome>) -> Vec
     while pool.len() < POOL_SIZE as usize {
         let mut rand: f64 = rng.gen();
         rand = rand * fit_total;
-        pool.push(old_pop[find(rand, &fitness_cdf)].clone());
+        pool.push(old_pop[_find(rand, &fitness_cdf)].clone());
     }
     
     return pool;
@@ -69,7 +69,7 @@ pub fn tournament_selection(mut old_pop: Vec<Genome>, new_gen: &mut Vec<Genome>)
     return pool
 }
 
-fn find(elem: f64, list: &Vec<f64>) -> usize {
+fn _find(elem: f64, list: &Vec<f64>) -> usize {
     let mut low = 0;
     let mut high = list.len() - 1;
     loop {

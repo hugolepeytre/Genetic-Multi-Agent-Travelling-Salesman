@@ -98,6 +98,8 @@ What is duration ? And customer duration requirement ?
 
 TODO : 
 What takes time is computing the crossovers, so we have to make those faster
+Parallelize
+Stp at convergence
 
 
 

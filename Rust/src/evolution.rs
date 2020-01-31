@@ -6,17 +6,18 @@ use crate::world::{Depot, Customer};
 use rand::prelude::*;
 use std::i64::MAX;
 
-const PROB_MUTATION: f64 = 0.4;
-const FRAC_INSERT: f64 = 0.7;
-const FRAC_SWAP: f64 = 0.1;
+const PROB_MUTATION: f64 = 0.1;
+const FRAC_INSERT: f64 = 0.6;
+const FRAC_SWAP: f64 = 0.2;
 const FRAC_SCRAMBLE: f64 = 0.2;
 
 const PROB_CROSSOVER: f64 = 0.9;
-const FRAC_ORDER1: f64 = 0.0;
+const FRAC_ORDER1: f64 = 0.1;
 const FRAC_PMX: f64 = 0.9;
 const FRAC_EDGE_RECOMB: f64 = 0.0;
 
-pub fn mutate(mut old: Genome, depots: &Vec<Depot>, customers: &Vec<Customer>, rng: &mut ThreadRng) -> Genome {
+pub fn mutate(mut old: Genome, depots: &Vec<Depot>, customers: &Vec<Customer>) -> Genome {
+    let mut rng = thread_rng();
     let l = old.customer_order.len();
     let mutat: f64 = rng.gen();
 
@@ -39,7 +40,7 @@ pub fn mutate(mut old: Genome, depots: &Vec<Depot>, customers: &Vec<Customer>, r
             let len: usize = rng.gen_range(0, l);
             let begin: usize = rng.gen_range(0, l - len);
             let mut sub: Vec<i64> = old.customer_order.iter().skip(begin).take(len).map(|&e| e).collect();
-            sub.shuffle(rng);
+            sub.shuffle(&mut rng);
             for (i, &e) in sub.iter().enumerate() {
                 old.customer_order[i + begin] = e;
             }
@@ -48,23 +49,24 @@ pub fn mutate(mut old: Genome, depots: &Vec<Depot>, customers: &Vec<Customer>, r
     Genome::generate(old.customer_order, depots, customers)
 }
 
-pub fn crossover(parent1: &Genome, parent2: &Genome, depots: &Vec<Depot>, customers: &Vec<Customer>, total_vehicles: usize, rng: &mut ThreadRng) -> (Genome, Genome) {
+pub fn crossover(parent1: &Genome, parent2: &Genome, depots: &Vec<Depot>, customers: &Vec<Customer>, total_vehicles: usize) -> (Genome, Genome) {
+    let mut rng = thread_rng();
     let child1: Vec<i64>;
     let child2: Vec<i64>;
     let cross: f64 = rng.gen();
     if cross < PROB_CROSSOVER {
         let cross: f64 = rng.gen();
         if cross < FRAC_ORDER1 {
-            child1 = order_1_crossover(parent1, parent2, total_vehicles, rng);
-            child2 = order_1_crossover(parent2, parent1, total_vehicles, rng);
+            child1 = order_1_crossover(parent1, parent2, total_vehicles, &mut rng);
+            child2 = order_1_crossover(parent2, parent1, total_vehicles, &mut rng);
         }
         else if cross < FRAC_ORDER1 + FRAC_PMX {
-            let children = partially_mapped_crossover(parent1, parent2, customers.len(), rng);
+            let children = partially_mapped_crossover(parent1, parent2, customers.len(), &mut rng);
             child1 = children.0;
             child2 = children.1;
         }
         else if cross < FRAC_ORDER1 + FRAC_PMX + FRAC_EDGE_RECOMB {
-            let children = edge_recombination_crossover(parent1, parent2, customers.len(), rng);
+            let children = edge_recombination_crossover(parent1, parent2, customers.len(), &mut rng);
             child1 = children.0;
             child2 = children.1;
         }
@@ -210,20 +212,26 @@ pub fn partially_mapped_crossover(parent1: &Genome, parent2: &Genome, num_custom
 
 pub fn edge_recombination_crossover(parent1: &Genome, parent2: &Genome, num_customers: usize, rng: &mut ThreadRng) -> (Vec<i64>, Vec<i64>) {
     // Idea : Transform all zeroes into num_customers + 1 to num_customers + num_vehicles, do algo then turn them back to 0
-    let mut p1: Vec<i64> = parent1.customer_order.clone();
-    let mut p2: Vec<i64> = parent2.customer_order.clone();
+    let mut p1: Vec<i64> = Vec::new();
+    let mut p2: Vec<i64> = Vec::new();
     let mut transform = num_customers as i64;
-    for i in 0..p1.len() {
-        if p1[i] == 0 {
+    for &c in &parent1.customer_order {
+        if c == 0 {
             transform = transform + 1;
-            p1[i] = transform;
+            p1.push(transform);
+        }
+        else {
+            p1.push(c);
         }
     }
     transform = num_customers as i64;
-    for i in 0..p2.len() {
-        if p2[i] == 0 {
+    for &c in &parent2.customer_order {
+        if c == 0 {
             transform = transform + 1;
-            p2[i] = transform;
+            p2.push(transform);
+        }
+        else {
+            p2.push(c);
         }
     }
     let mut child1 = Vec::new();

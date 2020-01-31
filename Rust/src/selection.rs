@@ -2,9 +2,9 @@ use crate::genome::Genome;
 
 use rand::prelude::*;
 
-const ELITES: i64 = 500;
-const POOL_SIZE: i64 = 1000;
-const TOURNAMENT_SIZE: usize = 500; // 1 is random, higher up to pop.len() is higher pressure
+const ELITES: i64 = 10;
+const POOL_SIZE: i64 = 80;
+const TOURNAMENT_SIZE: usize = 30; // 1 is random, higher up to pop.len() is higher pressure
 const SELECTION_PRESSURE: f64 = 0.9; // Higher = closer to deterministic, should be between 0 and 1
 
 pub fn _fitness_selection(old_pop: Vec<Genome>, new_gen: &mut Vec<Genome>) -> Vec<Genome> {

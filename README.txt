@@ -96,12 +96,6 @@ Converges too quickly, doesn't explore enough possibilities ?
 What is duration ? And customer duration requirement ?
 
 
-TODO : 
-What takes time is computing the crossovers, so we have to make those faster
-Parallelize
-Stp at convergence
-
-
 
 Test runs on 23 :
 Parameters : Tournament 50, 200, 500, mutation 0.2 to 0.6
@@ -126,3 +120,8 @@ R, 0.2 		17513, 31m13s
 500T, 0.6 	12030, 30m02s
 
 1 de chaque : 10340
+
+parallel pos and parallel generation 100 gens : 3m37
+parallel gen 100 gens : 1m17
+parallel pos 100 gens : 
+no parallel 100 gens : 5m

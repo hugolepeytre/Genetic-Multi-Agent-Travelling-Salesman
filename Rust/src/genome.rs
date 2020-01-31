@@ -2,8 +2,8 @@ use crate::world::{Depot, Customer};
 
 use rand::prelude::*;
 
-const REPAIRED: bool = true;
-const ALPHA: f64 = 5.0;
+const REPAIRED: bool = false;
+const ALPHA: f64 = 1000.0;
 
 #[derive(Clone)]
 pub struct Genome {

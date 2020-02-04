@@ -6,10 +6,10 @@ use crate::world::{Depot, Customer};
 use rand::prelude::*;
 use std::i64::MAX;
 
-const PROB_MUTATION: f64 = 0.1;
-const FRAC_INSERT: f64 = 0.6;
-const FRAC_SWAP: f64 = 0.2;
-const FRAC_SCRAMBLE: f64 = 0.2;
+const PROB_MUTATION: f64 = 0.2;
+const FRAC_INSERT: f64 = 0.4;
+const FRAC_SWAP: f64 = 0.3;
+const FRAC_SCRAMBLE: f64 = 0.3;
 
 const PROB_CROSSOVER: f64 = 0.9;
 const FRAC_ORDER1: f64 = 0.1;

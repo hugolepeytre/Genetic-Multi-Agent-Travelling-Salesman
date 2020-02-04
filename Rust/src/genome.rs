@@ -2,7 +2,9 @@ use crate::world::{Depot, Customer};
 
 use rand::prelude::*;
 
-const REPAIRED: bool = false;
+use std::hash::{Hash, Hasher};
+
+const REPAIRED: bool = true;
 const ALPHA: f64 = 1000.0;
 
 #[derive(Clone)]
@@ -269,3 +271,20 @@ impl Genome {
         self.total_distance
     }
 }
+
+
+impl Hash for Genome {
+    fn hash<H>(&self, state: &mut H)
+    where
+        H: Hasher,
+    {
+        self.customer_order.hash(state);
+    }
+}
+
+impl PartialEq for Genome {
+    fn eq(&self, other: &Self) -> bool {
+        self.customer_order.eq(&other.customer_order)
+    }
+}
+impl Eq for Genome {}
